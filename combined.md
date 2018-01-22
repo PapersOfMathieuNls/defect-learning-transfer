@@ -1,5 +1,5 @@
 ﻿---
-title: "Transfer Defect Learning in Large Industrial Projects"
+title: "Transfer Defect Learning in Software Ecosystems Using Dependency Analysis"
 bibliography: config/library.bib
 abstract:  ""
 author: 
@@ -29,9 +29,44 @@ keyword:
 
 \section{Introduction}\label{sec:introduction}
 
+Defect prediction is a popular field of study in academia.
+Defect prediction is the science of predicting if a software change, known as diff, introduced a new defect into the system.
+In order to build defect predictor, researchers and practitioners first extract all the historical data from a given source code repository and label changes as _buggy_ or not using the informations from the project tracking system (e.g. Jira, Bugzilla).
+Then, a model can be built, using a wide range of techniques, in order to predict if an incoming change contains a bug.
+An incoming change, classified as _buggy_ is known as a _risky_ commit because the classification is only a prediction.
+The prediction can turns out to be true or not in the future.
+
+Performant models can be build to achieve defect prediction in efficient manner using numerous tools and approaches (e.g. [@Rosen2015]).
+However, this field of study suffers from what is known as the cold start problem.
+The cold start problem is common to all approaches aiming to perform prediction, regardless of the data at hand.
+In essence, the cold start problem characterize the fact that, in order to build a model, one needs access to a large amount of historical data.
+Until sufficient data is acquired, no efficient model can be built and prediction acquired from partial models yield lower level of confidence.
+One of the solution explored in the past for tackling the cold start problem is known as transfer defect learning.
+Transfer defect learning aims at identifying similarity between projects and in order to adapt a model built for a project to another one.
+
+Past approaches mainly manipulate the feature space in order to transform the model and transfer what has been learned in one project to another.
+While these approaches are effective they require a significant amount of machine learning knowledge and computational power in order to put in industrial environment.
+
+In this paper, we propose to identify closely related projects using their dependencies in order to pick the right model while waiting for data to be produced and collected within the new project.
+In the context of software ecosystems, where an organization, produce and maintain a myriad of software systems identifying related project can be challenging.
+We propose to do so by automatically retrieving dependencies of projects and create clusters of similar projects.
+The rational behind this approach is that projects sharing the same set of dependencies are potentially trying to achieve similar behavior.
+
+Our approach was developed in collaboration with software developers from Ubisoft La Forge.
+Ubisoft is one of the world's largest video game development companies specializing in the design and implementation of high-budget video games. 
+Ubisoft software systems are highly coupled containing millions of files and commits, developed and maintained by more than 8,000 developers scattered across 29 locations in six continents.
+
+We tested our approach on 12 major Ubisoft systems.
+The results show that we are able to identify closely related projects and their related models in order to alleviate the cold start problem in an industrial environment. 
+Moreover, we replicated our study in an open-source environment.
+
+The remaining parts of this paper are organised as follows. In Section \ref{sec:relwork}, we present related work. Sections \ref{sec:CLEVERT}, \ref{sec:exp} and \ref{sec:result} are dedicated to describing our approach, the case study setup, and the case study results. Then, Sections \ref{sec:threats} and \ref{sec:conclusion} present the threats to validity and a conclusion accompanied with future work.
+
 # Related Work {#sec:relwork}
 
-[Related work are for defect prediction, we have to spin it towards transfer defect learning]
+In this section, we present the work that are related the most related to ours.
+We first present work done in file, module and risky changes in general.
+Then, we present work that belong to transfer defect learning specifically.
 
 ## File, Module and Risky Change Prediction
 
@@ -43,32 +78,44 @@ Nagappan *et al.* et proposed a technique that uses data mined from source code 
 
 Other studies that aim to predict risky changes use the entropy of a given change [@SunghunKim2008; @Hassan2009] and the size of the change combined with files being changed [@Kamei2013].
 
-These techniques operate at different levels of the systems and may require the presence of the entire source code. In addition, the reliance of metrics may result in high false positives rates. We need a way to to validate whether a suspicious change is indeed risky.  In this paper,  we address this issue using a two-phase process that combines the use of metrics to detect suspicious risky changes, and code matching to increase the detect accuracy. As we will show in the evaluation section, XXX reduces the number of false positives while keeping good recall. In addition, XXX  operates at commit-time for preventing the introduction of faults before they reach the code repository. Through interactions with Ubisoft developers, we found that this integrates well with the workflow of developers.
+## Transfer Defect Learning
 
-## Automatic Patch Generation
+\red{@Fabio, would you mind drafting something for this section based on the paper selected I gave you?}
 
-One feature of XXX  is the ability to propose fixes that can help developers correct the detected risky commit. This is similar in principle to the work on automatic patch generation.
-Pan *et al.* and  Kim *et al.* proposed two approaches that extract and apply fix patterns [@Pan2008; @Kim2013]. Pan *et al.*  identified 27 patterns and were able to fix 45.7% - 63.6% of bugs using one of the proposed patterns.
-The patterns found by Kim *et al.* are mined from human-written patches and were able to successfully generate patches for 27 out of 119 bugs. The tool by Kim *et al.*, named PAR, is similar to the second part of XXX where we propose fixes. Our approach also mines potential fixes from human-written patches found in the historical data. In our work, we do not generate patches,  but instead  propose known patches to developers for further assessment. It has also been shown that patch generation is useful in understanding and debugging the causes of faults [@tao2014automatically].
+As mentioned in the previous section, these approaches are effective in transfer defect learning from on project to another.
+However, they do not leverage the fact that software systems within an organization are built to collaborate with each others and new software are built on top of other, potentially following the same guidelines and practices.
+Our approach take another route and tries to identify similar project and apply past models while acquiring enough data to build a dedicated model.
 
-Despite the advances in the field of automatic patch generation, this task remains overly complex. Developers expect from tools high quality patches that can be safely deployed. Many studies proposed a classification of what is considered  an acceptable quality patch for an automatically generated patch to be adopted in industry [@Dallmeier; @le2012systematic; @le2015should].
+# Transfer Defect Learning in Software Ecosystems Using Dependency Analysis {#sec:XXXT}
 
-# Defect Prediction at Ubisoft {#sec:XXXT}
+In the following subsections, we present our approach to transfer defect learning in software ecosystems using dependency analysis.
+First, we present the pipeline of defect learning at Ubisoft.
+While this pipeline is tailored for Ubisoft's needs, it is very much based on the state of the art of defect learning.
+Then, we present how we collect and use dependencies to create clusters of alike projects.
+Finally, we explain the process by which we can select existent models for alleviate the cold start problem for new projects.
 
-[Desribe the approach Prediction approach in a few paragraphs and introduce the cold-start problem. Basically https://github.com/PapersOfMathieuNls/misfire/blob/master/combined.md.pdf]
+## Classical Defect Learning
+
+\red{[Describe the approach Prediction approach in a few paragraphs and introduce the cold-start problem. Basically https://github.com/PapersOfMathieuNls/misfire/blob/master/combined.md.pdf. I am waiting to see if the paper is accepted or not at ICSE to do a citation]}
 
 ## Clustering Projects {#sec:clustering}
 
-We cluster projects according to their dependencies. The rationale is that projects that share dependencies are most likely to contain defects caused by misuse of these dependencies. In this step, the project dependencies are analysed and saved into a single NoSQL graph database as shown in Figure \ref{fig:CLEVERT3}. A node corresponds to a project that is connected to other projects on which it depends. Dependencies can be _external_ or _internal_ depending on whether the products are created in-house or supplied by a third-party. For confidentiality reasons, we cannot reveal the name of the projects involved in the project dependency graph. We show the 12 projects in yellow color with their dependencies in blue color in Figure \ref{fig:dep-graph}. In total, we discovered 405 distinct dependencies that are internal and external both.
+\begin{figure*}
+  \centering
+    \includegraphics[width=0.7\textwidth]{media/cluster-approach}
+    \caption{Clustering by dependency\label{fig:bianca3}}
+\end{figure*}
+
+We cluster projects according to their dependencies. The rationale is that projects that share dependencies are most likely to contain defects caused by misuse of these dependencies. In this step, the project dependencies are analysed and saved into a single NoSQL graph database as shown in Figure \ref{fig:bianca3}. A node corresponds to a project that is connected to other projects on which it depends. Dependencies can be _external_ or _internal_ depending on whether the products are created in-house or supplied by a third-party. For confidentiality reasons, we cannot reveal the name of the projects involved in the project dependency graph. We show the 12 projects in yellow color with their dependencies in blue color in Figure \ref{fig:dep-graph}.
+In total, we discovered 405 distinct dependencies that are internal and external both.
 The resulting partitioning is shown in Figure \ref{fig:network-sample}.
 
-\input{tex/dependencies}
+At Ubisoft, dependencies are managed within the framework of a single repository, which makes their automatic extraction possible.
+In the context of open-source ecosystem, the dependencies can be automatically retrieved if the projects use a dependency manager such as Maven.
 
-At Ubisoft, dependencies are managed within the framework of a single repository, which makes their automatic extraction possible. The dependencies could also be automatically retrieved if the projects use a dependency manager such as Maven.
+Once the project dependency graph is extracted, we use a clustering algorithm to partition the graph. To this end, we choose the Girvan–Newman algorithm [@Girvan2002; @Newman2004], used to detect communities by progressively removing edges from the original network. Instead of trying to construct a measure that identifies the edges that are the most central to communities, the Girvan–Newman algorithm focuses on edges that are most likely "between" communities.
 
-\input{tex/network-sample}
-
-Once the project dependency graph is extracted, we use a clustering algorithm to partition the graph. To this end, we choose the Girvan–Newman algorithm [@Girvan2002; @Newman2004], used to detect communities by progressively removing edges from the original network. Instead of trying to construct a measure that identifies the edges that are the most central to communities, the Girvan–Newman algorithm focuses on edges that are most likely "between" communities. This algorithm is very effective at discovering community structure in both computer-generated and real-world network data [@Newman2004]. Other clustering algorithms can also be used.
+This algorithm is very effective at discovering community structure in both computer-generated and real-world network data [@Newman2004]. Other clustering algorithms can also be used.
 
 # Case Study Setup {#sec:exp}
 
@@ -76,44 +123,92 @@ In this section, we present the setup of our case study in terms of repository s
 
 ## Project Repository Selection {#sec:rep}
 
+### Ubisoft
+
 In collaboration with Ubisoft developers, we selected XX major software projects (i.e., systems) developed at Ubisoft to evaluate the effectiveness of XXX. These systems continue to be actively maintained by thousands of developers. Ubisoft projects are organized by game engines. A game engine can be used in the development of many high-budget games. The projects selected for this case study are related to the same game engine. For confidentiality and security reasons, neither the names nor the characteristics of these projects are provided. We can however disclose that the size of these systems altogether consists of millions of lines of code.
+
+### Open Source
+
+To select the projects used to evaluate our approach, we followed three simple criteria. First, the projects need to be in Java and use Maven to manage dependencies. This way, we can automatically extract the dependencies and perform the clustering of projects. The second criterion is to have projects that enjoy a large community support and interest. We selected projects that have at least 2000 followers. Finally, the projects must have a public issue repository to be able to mine their past issues and the fixes. We queried Github with these criteria and retrieved 42 projects (see Table \ref{tab:results} for the list of projects), including those from some of major open-source contributors such as Alibaba, Apache Software Foundation, Eclipse, Facebook, Google and Square.
 
 ## Project Dependency Analysis {#sec:dependencies}
 
-Figure \ref{fig:dep-graph} shows the project dependency graph.
+In this section we present how we choose the projects participating in our study.
+
+### Ubisoft
+
+\input{tex/dependencies}
+\input{tex/network-sample}
+
+Figure \ref{fig:dep-graph} shows the projects dependency graph extracted from Ubisoft ecosystem.
+
 As shown in Figure \ref{fig:dep-graph}, these projects are highly interconnected.
-A review of each cluster shows that this partitioning divides projects in terms of their high-level functionalities. For example, one cluster is related to a particular given family of video games, whereas the other cluster refers to another family. We showed this partitioning to 11 experienced software developers and ask them to validate it. They all agreed that the results of this automatic clustering is accurate and reflects well the various project groups of the company.
-The clusters are used for decreasing the rate of positive. 
-In addition, fixes mined accross projects but within the cluster are qualitative as show in our experiments.
 
-## Process of Comparing New Models
+A review of each cluster shows that this partitioning divides projects in terms of their high-level functionalities.
+For example, one cluster is related to a particular given family of video games, whereas the other cluster refers to another family. 
+We showed this partitioning to 11 experienced software developers and ask them to validate it.
+They all agreed that the results of this automatic clustering is accurate and reflects well the various project groups of the company.
+The clusters are used for decreasing the rate of positive.
 
-## Evaluation Measures
+### Open Source
+
+\input{tex/network-sample-opensource}
+\input{tex/dependencies-opensource}
+
+Figure \ref{fig:dep-graph} shows the project dependency graph. The dependency graph is composed of 592 nodes divided into five clusters shown in yellow, red, green, purple and blue. The size of the nodes in Figure \ref{fig:dep-graph} is proportional to the number of connections from and to the other nodes.
+
+As shown in Figure \ref{fig:dep-graph}, these Github projects are very much interconnected. On average, the projects composing our dataset have 77 dependencies. Among the 77 dependencies, on average, 62 dependencies are shared with at least one other project from our dataset.
+
+Table \ref{tab:communities} shows the result of the Girvan–Newman clustering algorithm  in terms of centroids and betweenness. The blue cluster is dominated by Storm from The Apache Software Foundation. Storm is a distributed real-time computation system. Druid by Alibaba, the e-commerce company that provides consumer-to-consumer, business-to-consumer and business-to-business sales services via web portals, dominates the yellow cluster. In recent years, Alibaba has become an active member of the open-source community by making some of its projects publicly available. The red cluster has Hadoop by the Apache Software Foundation as its centroid. Hadoop is an open-source software framework for distributed storage and distributed processing of very large datasets on computer clusters built from commodity hardware. The green cluster is dominated by the Persistence project of OpenHab.  OpenHab proposes home automation solutions and the Persistence project is their data access layer. Finally, the purple cluster is dominated by Libdx by Badlogicgames, which is a cross-platform framework for game development.
+
+A review of each cluster shows that this partitioning divides projects in terms of high-level functionalities. For example, the blue cluster is almost entirely composed of projects from the Apache Software Foundation. Projects from the Apache Software Foundation tend to build on top of one another. We also have the red cluster for Hadoop, which is by itself an ecosystem inside the Apache Software Foundation. Finally, we obtained a cluster for e-commerce applications (yellow), real-time network application for home automation (green), and game development (purple).
+
+\input{tex/clusters-opensource}
+
+## Process of Testing And Evaluate Models
+
+In order to test our approach we perform two tests per cluster.
+In each cluster, we take the latest project added to the cluster and try to predict the firs thousand commits with the model learnt from the before last project ($t_1$) and one learnt from the combination of all projects in the cluster ($t_2$).
+
+More formally:
+
+\begin{equation}
+M_{i-1} \models P_{i}
+\end{equation}
+
+and
+
+\begin{equation}
+M_{\bigcup_{i=0}^{i-1}} \models P_{i}
+\end{equation}
+
+where $M$ is a defect model, $P$ is a software project and $\models$ represents the application of a model on a given project.
+
+Then, we report the performances of the tests in terms of precision, recall and F1-measure.
+The precision is the division of the true positives (i.e. commits correctly classified as buggy) over the true positives plus the false positive (i.e. commits incorrectly classified as buggy).
+
+The recall is the division of the true positive over the false negatives (i.e. the commits incorrectly classified as sane).
+Finally, the F1-measure is the harmonic means of precision and recall:
+
+\begin{equation}
+2 . \frac{precision . recall}{precision+recall}
+\end{equation}
+
+We only test the first thousand commit of each project as we consider that after that mark, it will become reasonable to build a dedicated model as historical data would have been collected.
 
 # Case Study Results {#sec:result}
 
-## Performance
-
-## Cluster Classifier Performance
-  
-The clusters computed with the dependencies of each project help to solve an important problem in defect  prediction, known as cold start [@Schein2002]. 
- [Wahab: you need to explain this in one or two sentences]
 The clusters computed with the dependencies of each project help to solve an important problem in defect prediction, known as cold start [@Schein2002].
-Indeed, as performant as a classifier can be it, after training, it still needs to be train with historical data.
+Indeed, as performant as a classifier can be, after training, it still needs to be train with historical data.
 While the system is learning, no prediction can be done.
-  
+
 There exist approaches have been proposed to solve this problems, however, they all require to classify _similar_ projects by hand and then, manipulate the feature space in order to adapt the model learnt from one project to another one [@Nam2013].
-  
-[Wahab: you need to develop this section. The text is not clear. The graphs are not either. I think defect learning transfer is another topic you can tackle in another paper. One possibility to fix this is to talk about the result of CLEVER without the clustering step]
  
 With our approach, the _similarity_ between projects is computed automatically and the results show that we do not actually need to manipulate the feature space. Figures \ref{fig:bluecluster}, \ref{fig:yellowcluster} and \ref{fig:redcluster} show the performance of CLEVER classification in terms of ROC-curve for the first thousand commits of the last project (chronologically) for the blue, yellow and red clusters presented in Figure \ref{fig:network-sample}.
 The left sides or the graph are low cutoff (aggressive) while the right sides are high cutoff (conservative).
 The area under the ROC curves are 0.817, 0.763 and 0.806 for the blue, yellow and red clusters, respectively.
 In other words, if we train a classifier with historical data from system in the same cluster as the targeted systems, then we do not have to wait to start classifying incoming commits.
 
-[I have better results since then, this is a placeholder]
-
-\input{tex/clusterRoc}
 
 # Discussion {#sec:threats}
 
@@ -121,11 +216,7 @@ In this section, we propose a discussion on limitations and threats to validity.
 
 ## Limitations
 
-We identified two main limitations of our approach, XXX, which require further studies.
-
-XXX is designed to work on multiple related systems. Applying XXX on a single system will most likely be less effective. The the two-phases classification process of XXX would be hindered by the fact that it is unlikely to have a large number of similar bugs within the same system. For single systems, we recommend the use of metric-based models. A metric-based solution, however, may turn to be ineffective when applied across systems because of the difficulty associated with identifying common thresholds that are applicable to a wide range of systems.
-
-The second limitation we identified has to do with the fact that XXX is designed to work with Ubisoft systems. Ubisoft uses C\#, C, C++, Java and other internally developed languages. It is however common to have  other languages used in an environment with many inter-related systems. We intend to extend XXX to process commits from other languages as well.
+\red{@Wahab, can you have a go at this?}
 
 ## Threats to Validity
 
@@ -134,25 +225,25 @@ The selection of target systems is one of the common threats to validity for app
 The programs we used in this study are all based on the C\#, C, C++ and Java programming languages.
 This can limit the generalization of the results to projects written in other languages, especially that the main component of XXX is based on code clone matching.
 
-Finally, part of the analysis of the XXX proposed fixes that we did was based on manual comparisons of the XXX fixes with those proposed by developers with a focus group composed of experienced engineers and software architects. Although, we exercised great care in analysing all the fixes, we may have misunderstood some aspects of the commits.
-
-In conclusion, internal and external validity have both been minimized by choosing a set of 12 different systems, using input data that can be found in any programming languages and version systems (commits and changesets).
+In conclusion, internal and external validity have both been minimized by choosing a set of 8 different systems (4 open source and 4 closed source), using input data that can be found in any programming languages and version systems (commits and changesets).
 
 # Conclusion {#sec:conclusion}
 
-In this paper, we presented XXX (Combining Levels of Bug Prevention and Resolution Techniques), an approach that detects risky commits (i.e., a commit that is likely to introduce a bug) with an average of 79.10% precision and a 65.61% recall.
-XXX combines code metrics, clone detection techniques, and project dependency analysis to detect risky commits within and across projects.  XXX operates at commit-time, i.e., before the commits reach the central code repository. Also, because it relies on code comparison, XXX does not only detect risky commits but also makes recommendations to developers on how to fix them. We believe that this makes XXX a practical approach for preventing bugs and proposing corrective measures that integrate well with the developer's workflow through the commit mechanism.
+In this paper, we presented an approach to transfer defect learning between projects belonging to the same software ecosystem.
+To identify candidates that can reuse a defect model, while waiting for enough data to be acquired, using an automated clustering of projects using their dependencies.
+The main idea behind this choice is that projects in a given ecosystem are made to collaborate with each other and, if projects share a lot of their dependencies it is likely that they solve part of the same problem.
 
-As future work, we want to build a feedback loop between the users and the clusters of known buggy commits and their fixes.
-If a fix is never used by the end-users, then we could remove it from the clusters and improve our accuracy. We also intend to improve XXX to deal with generated code. Moreover, we will investigate how to improve the fixes proposed by XXX to add contextual information to help developers better assess the applicability of the fixes.
+We shown our approach to be working on closed and open sources ecosystem both.
+
+As a feature work, we want to investigate the performances of a model built using the historical data of an entire cluster and see if classical defect learning approaches are effective when applied from cluster to cluster.
 
 # Reproduction Package
 
-For security and confidentiality reasons we cannot provide a reproduction package that will inevitably involve Ubisoft's copyrighted source code.
-However, the XXX source code is in the process of being open-sourced and will be soon available at https://github.com/ubisoftinc.
+For security and confidentiality reasons we cannot provide a complete reproduction package that will inevitably involve Ubisoft's copyrighted source code.
+However, we provide a reproduction package for the open-source parts of our experimentations at \red{TBA}.
 
 \begin{acks}
-We are thankful to the software development team at  Ubisoft for their participations to the study and their assessment of the effectiveness of XXX.
+We are thankful to the software development team at  Ubisoft for their participations to the study and their assessment of the effectiveness of our transfer learning technique.
 \end{acks}
 \vfill\eject
 \section*{References}

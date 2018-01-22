@@ -158,7 +158,7 @@ $endif$
 
 \usepackage{booktabs}
 \setcopyright{rightsretained}
-\acmConference[ICSE'18]{ACM ICSE Conference}{May 2018}{Gothemburg, Sweden} 
+\acmConference[MSR'18]{ACM MSR Conference}{May 2018}{Gothemburg, Sweden} 
 \acmYear{018}
 \copyrightyear{2018}
 
@@ -182,7 +182,7 @@ $endif$
 \email{}
 
 
-\renewcommand{\shorttitle}{Combining Code Metrics With Clone Detection For Faults Prevention and Resolution}
+\renewcommand{\shorttitle}{Transfer Defect Learning in Software Ecosystems}
 
 
 
